@@ -44,3 +44,17 @@
 ![image](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/46ec8ded987245bebfc94baed2202d47~tplv-k3u1fbpfcp-zoom-in-crop-mark:4536:0:0:0.image?)
 - 或使用IIFE( Immediately Invoked Function Expression)匿名函数表达式：
 ![image](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/10385e7f4b254d918d014f1de5703e93~tplv-k3u1fbpfcp-zoom-in-crop-mark:4536:0:0:0.image?)
+
+
+## 4. 尽量避免使用 useLayoutEffect
+- `useEffect` 和 `useLayoutEffect`，是两个工作方式很相似的`React Hook`，它们二者的不同在于执行时机：
+  - useEffect 是在渲染函数执行完成，并绘制到屏幕之后，再异步执行
+  - useLayoutEffect是在渲染函数执行之后，屏幕重绘前同步执行
+- 因为 `useLayoutEffect` 是同步执行的，因此会发生阻塞，直到该 `effect` 执行完成才会进行页面重绘，如果 effect 内部有执行很慢的代码，可能会引起性能问题。因此，React 官方指出，尽可能使用标准的 useEffect 以避免阻塞视觉更新。
+- `useLayoutEffect` 也不是毫无作用，下面介绍它的一个使用场景。
+![image](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/47d8b31e14a740acb90f261b57949490~tplv-k3u1fbpfcp-zoom-in-crop-mark:4536:0:0:0.image?)
+- 当点击按钮时，会发现页面发生闪烁： ![image](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/fd56e1d181874c16a074db4bb5047b92~tplv-k3u1fbpfcp-zoom-in-crop-mark:4536:0:0:0.image?)
+- 原因在于，`useEffect` 的触发时机会被延迟到 DOM 绘制完成。因此我们点击按钮 `setState` 后，其实经历了 设置高度为 50 -> 绘制屏幕 -> 设置高度为100 的两次 render 过程，所以肉眼才会看到中间过渡的 state 导致的闪烁的感觉。
+- 而前面提到，`useLayoutEffect` 会在所有 DOM 改变后，同步调用。在浏览器运行绘制之前，useLayoutEffect 内部的更新将被同步刷新。正因为这个 hook 的特性，我们可以使用它来让 DOM 的渲染慢一拍，等待 state 真正更新完后才去渲染浏览器的画面。
+- 我们将 useEffect 改为 useLayoutEffect：
+![image](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/3bed8d8e7a7b4388a6b886dd0947d937~tplv-k3u1fbpfcp-zoom-in-crop-mark:4536:0:0:0.image?)
