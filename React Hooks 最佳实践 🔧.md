@@ -58,3 +58,9 @@
 - 而前面提到，`useLayoutEffect` 会在所有 DOM 改变后，同步调用。在浏览器运行绘制之前，useLayoutEffect 内部的更新将被同步刷新。正因为这个 hook 的特性，我们可以使用它来让 DOM 的渲染慢一拍，等待 state 真正更新完后才去渲染浏览器的画面。
 - 我们将 useEffect 改为 useLayoutEffect：
 ![image](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/3bed8d8e7a7b4388a6b886dd0947d937~tplv-k3u1fbpfcp-zoom-in-crop-mark:4536:0:0:0.image?)
+
+## 5. 善用 useMemo / useCallback
+- 前面提到，我们可以使用 `React.memo()` 这个高阶组件来控制函数组件的重复渲染。
+- 导致重复渲染的原因是 `React Hooks` 使用的是函数组件，父组件的任何一次修改，都会导致子组件的函数执行，从而重新进行渲染。
+- 因此，为了性能方面考虑，除了使用 `React.memo()` 对函数组件进行包装，我们还可以使用 React 提供的 `useCallback` 和 `useMemo` 来对针对函数和函数的返回值进行缓存。
+- 需要注意的是， useCallback 和 useMemo 要结合 React.memo() 才能避免子组件无效渲染。
