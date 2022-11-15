@@ -64,3 +64,39 @@
 - 导致重复渲染的原因是 `React Hooks` 使用的是函数组件，父组件的任何一次修改，都会导致子组件的函数执行，从而重新进行渲染。
 - 因此，为了性能方面考虑，除了使用 `React.memo()` 对函数组件进行包装，我们还可以使用 React 提供的 `useCallback` 和 `useMemo` 来对针对函数和函数的返回值进行缓存。
 - 需要注意的是， useCallback 和 useMemo 要结合 React.memo() 才能避免子组件无效渲染。
+
+
+## 6.  善用自定义 Hooks 捆绑封装逻辑与相关 state
+
+
+- 在 `React Hooks` 出现以前，我们可以通过 `Render Props` 和高阶组件（HOC）两种方式来实现 React 组件的状态逻辑共享。
+
+
+- 而如今，得益于 Hooks 的逻辑封装能力，我们可以将常见的逻辑封装起来，以减少代码复杂度。
+
+
+- 而且一个页面上往往有很多状态，这些状态分别有各自的处理逻辑，如果用类组件的话，这些状态和逻辑都会混在一起，不够直观：
+![image](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/90081ea29e584fc797954ef4faf56326~tplv-k3u1fbpfcp-zoom-in-crop-mark:4536:0:0:0.image?)
+
+- 通过使用 React Hooks 后，我们可以把状态和逻辑关联起来，分拆成多个自定义 Hooks，代码结构就会变得更清晰：
+![image](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/33e4e374847b40f8958a4db42b03eecd~tplv-k3u1fbpfcp-zoom-in-crop-mark:4536:0:0:0.image?)
+
+- 比如现在有多个页面，都需要用到在 antd Modal 组件中嵌入自己的表单，同时可以由组件自己控制 Modal 的显示：
+![image](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/f859fe8147a4483b82e462aa25011038~tplv-k3u1fbpfcp-zoom-in-crop-mark:4536:0:0:0.image?)
+
+- 为了避免在每个页面都写重复的逻辑，我们实现了 `useActionModal` 的自定义 Hooks，代码如下：
+![image](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/e1b8ae26b9264a34856a8d9459837d73~tplv-k3u1fbpfcp-zoom-in-crop-mark:4536:0:0:0.image?)
+
+- 在群组页面使用代码示例：
+![image](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/3f1d601eed5e4b538202e1d160d66a58~tplv-k3u1fbpfcp-zoom-in-crop-mark:4536:0:0:0.image?)
+
+- 可以看到，通过将多个页面共有的逻辑封装在 `useActionModal` 中，可以大大减少代码量和维护成本。
+
+
+- 需要强调的是，我们不能在类组件中使用 Hooks，所以如果项目中还有老式的类组件，需要使用自定义 Hooks，就需要将它们转换为函数式组件或者使用其他可重用逻辑模式（HOC 或Render Props），如可将 Hook 包装成 HOC：
+![image](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/7c58637266834bc1b70192915227d998~tplv-k3u1fbpfcp-zoom-in-crop-mark:4536:0:0:0.image?)
+
+- 使用的时候将我们的目标组件用上述的 withHooksHOC 包装起来，那么我们就可以将 width 属性传递给目标组件
+![image](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/159a35d348aa4813b7d58d60eaf0aa6c~tplv-k3u1fbpfcp-zoom-in-crop-mark:4536:0:0:0.image?)
+
+- 由于官方自带的 Hooks 远远无法满足我们的开发需求 ，目前社区上别人也封装了一些自定义 Hooks 库，如 react-use 等，大家可以学习一下相关自定义 Hooks 的实现。
