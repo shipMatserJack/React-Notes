@@ -100,3 +100,25 @@
 ![image](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/159a35d348aa4813b7d58d60eaf0aa6c~tplv-k3u1fbpfcp-zoom-in-crop-mark:4536:0:0:0.image?)
 
 - 由于官方自带的 Hooks 远远无法满足我们的开发需求 ，目前社区上别人也封装了一些自定义 Hooks 库，如 react-use 等，大家可以学习一下相关自定义 Hooks 的实现。
+
+
+## 7. 使用 Redux Hooks 替代 connect
+- 本条是针对 `React + Redux` 项目的实践建议，如果项目中使用的是 `Mobx` 或其他状态管理库，可跳过本条实践。
+
+
+- `React Redux` 在 7.1 版本中提供了一组 Hooks 作为现有 connect() 高阶组件的替代方案：
+
+  - `useSelector`：替换 connect() 的 `mapStateToProps` 方法。它接受一个函数作为参数，该函数使用 Redux 的存储状态并返回所需的状态。
+  - `useDispatch`：替换 connect() 的 `mapDispatchToProps` 方法。它所做的只是返回 store 的 `dispatch` 方法，因此我们也可以手动调用dispatch。
+
+
+- 下面通过代码来对比两者写法不同：
+
+
+- 使用 `connect()`：
+![image](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/487edf0345494ceeacd7c53f1d6322e5~tplv-k3u1fbpfcp-zoom-in-crop-mark:4536:0:0:0.image?)
+
+- 使用 `Redux Hooks`：
+![image](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/6abf9116004b43a5972aa57495650778~tplv-k3u1fbpfcp-zoom-in-crop-mark:4536:0:0:0.image?)
+
+- 可见，将 `useSelector` 和 `useDispatch` 作为 `connect()` 的替代方案，代码更干净，也显得更有条理。
