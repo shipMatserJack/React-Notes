@@ -1,8 +1,7 @@
 # React基础
 
 ## React组件
-### 1. 组建的使用
-**1.1 函数式组件**
+### 1. 函数式组件
 
 定义组件最简单的方式就是编写 JavaScript 函数：
 ```js
@@ -27,7 +26,7 @@ React 会将以小写字母开头的组件视为原生 DOM 标签。例如，`<d
 
 你可以在深入 [JSX](https://zh-hans.reactjs.org/docs/jsx-in-depth.html#user-defined-components-must-be-capitalized) 中了解更多关于此规范的原因
 
-**1.2类组建**
+### 2. 类组建
 
 将函数组件转换成 class 组件
 
@@ -56,8 +55,10 @@ ReactDOM.render(<MyComponent />, document.getElementById('test'))
 2. 发现组件是类定义的，随后new出来的类的实例，并通过该实例调用到原型上的render方法
 3. 将render返回的虚拟DOM转化为真实的DOM,随后呈现在页面中
 
-### 2. state
-**2.1 基本使用**
+-----------------------------------------
+
+## 状态state
+### 1. 基本使用
 > 我们都说React是一个状态机，体现是什么地方呢，就是体现在state上，通过与用户的交互，实现不同的状态，然后去渲染UI,这样就让用户的数据和界面保持一致了。state是组件的私有属性。  
 在React中，更新组件的state，结果就会重新渲染用户界面(不需要操作DOM),一句话就是说，用户的界面会随着状态的改变而改变。  
 state是组件对象最重要的属性，值是对象（可以包含多个key-value的组合）  
@@ -125,6 +126,143 @@ this.state.isHot = false
   1. 通过 bind 改变 this 指向
   2. 推荐采用箭头函数，箭头函数的 this 指向
 3. state 数据不能直接修改或者更新
+
+### 2. setState()
+
+this.setState()，该方法接收两种参数：对象或函数。
+```js
+this.setState(partialState, [callback]);
+```
+- partialState: 需要更新的状态的部分对象
+- callback: 更新完状态后的回调函数
+
+有两种写法:
+
+1. 对象：即想要修改的state
+```js
+this.setState({
+    isHot: false
+})
+```
+2. 函数：接收两个函数，第一个函数接受两个参数，第一个是当前state，第二个是当前props，该函数返回一个对象，和直接传递对象参数是一样的，就是要修改的state；第二个函数参数是state改变后触发的回调
+```js
+this.setState(state => ({count: state.count+1});
+```
+- 在执行 `setState`操作后，React 会自动调用一次 render()
+- render() 的执行次数是 1+n (1 为初始化时的自动调用，n 为状态更新的次数)
+
+### 3. State 的更新可能是异步的
+
+React控制之外的事件中调用setState是同步更新的。比如原生js绑定的事件，setTimeout/setInterval等。
+
+大部分开发中用到的都是React封装的事件，比如onChange、onClick、onTouchMove等，这些事件处理程序中的setState都是异步处理的。
+```js
+//1.创建组件
+class St extends React.Component{
+    //可以直接对其进行赋值
+    state = {isHot:10};
+    render(){ //这个This也是实例对象
+        return <h1 onClick = {this.dem}>点击事件</h1> 
+    }
+//箭头函数 [自定义方法--->要用赋值语句的形式+箭头函数]
+    dem = () =>{
+        //修改isHot
+        this.setState({ isHot: this.state.isHot + 1})
+        console.log(this.state.isHot);
+    }
+}
+```
+上面的案例中预期setState使得isHot变成了11，输出也应该是11。然而在控制台打印的却是10，也就是并没有对其进行更新。这是因为异步的进行了处理，在输出的时候还没有对其进行处理。
+```js
+document.getElementById("test").addEventListener("click",()=>{
+        this.setState({isHot: this.state.isHot + 1});
+        console.log(this.state.isHot);
+    })
+}
+```
+但是通过这个原生JS的，可以发现，控制台打印的就是11，也就是已经对其进行了处理。也就是进行了同步的更新。
+
+React怎么调用同步或者异步的呢？
+
+在 React 的 setState 函数实现中，会根据一个变量 isBatchingUpdates 判断是直接更新 this.state 还是放到队列中延时更新，而 isBatchingUpdates 默认是 false，表示 setState 会同步更新 this.state；但是，有一个函数 batchedUpdates，该函数会把 isBatchingUpdates 修改为 true，而当 React 在调用事件处理函数之前就会先调用这个 batchedUpdates将isBatchingUpdates修改为true，这样由 React 控制的事件处理过程 setState 不会同步更新 this.state。
+
+如果是同步更新，每一个setState对调用一个render，并且如果多次调用setState会以最后调用的为准，前面的将会作废；如果是异步更新，多个setSate会统一调用一次render
+```js
+dem = () =>{
+    this.setState({
+        isHot:  1,
+        cont:444
+    })
+    this.setState({
+    	isHot: this.state.isHot + 1
+
+    })
+    this.setState({
+        isHot:  888,
+        cont:888
+    })
+}
+```
+
+### 4. 异步更新解决方案
+出于性能考虑，React 可能会把多个 `setState()` 调用合并成一个调用。
+
+因为 `this.props` 和 `this.state` 可能会异步更新，所以你不要依赖他们的值来更新下一个状态。
+
+例如，此代码可能会无法更新计数器：
+```js
+// Wrong
+this.setState({
+  counter: this.state.counter + this.props.increment,
+});
+```
+要解决这个问题，可以让 `setState()` 接收一个函数而不是一个对象。这个函数用上一个 state 作为第一个参数，将此次更新被应用时的 props 做为第二个参数：
+```js
+// Correct
+this.setState((state, props) => ({
+  counter: state.counter + props.increment
+}));
+```
+上面使用了箭头函数，不过使用普通的函数也同样可以：
+```js
+// Correct
+this.setState(function(state, props) {
+  return {
+    counter: state.counter + props.increment
+  };
+});
+```
+
+----------------------------------------
+
+## Props
+与state不同，state是组件自身的状态，而props则是外部传入的数据
+
+基本使用：
+```js
+<body>
+    <div id = "div">
+
+    </div>
+
+</body>
+<script type="text/babel">
+    class Person extends React.Component{
+        render(){
+          const { name, age, sex } = this.props
+            return (
+                <ul>
+                  <li>姓名：{name}</li>
+                  <li>性别：{sex}</li>
+                  <li>年龄：{age + 1}</li>
+                </ul>
+          )
+        }
+    }
+    //传递数据
+    ReactDOM.render(<Person name="tom" age = {41} sex="男"/>,document.getElementById("div"));
+</script>
+```
 
 ##  组件通信的方式
 1. 父子组件通信方式
