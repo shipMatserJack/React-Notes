@@ -263,6 +263,208 @@ this.setState(function(state, props) {
     ReactDOM.render(<Person name="tom" age = {41} sex="男"/>,document.getElementById("div"));
 </script>
 ```
+如果传递的数据是一个对象，可以更加简便的使用
+```js
+<script type="text/babel">
+    class Person extends React.Component{
+        render(){
+            return (
+                <ul>
+                    <li>{this.props.name}</li>
+                    <li>{this.props.age}</li>
+                    <li>{this.props.sex}</li>
+                </ul>
+            )
+        }
+    }
+    const p = {name:"张三",age:"18",sex:"女"}
+   ReactDOM.render(<Person {...p}/>,document.getElementById("div"));
+</script>
+```
+### 2. props限制
+> 注意：
+自 React v15.5 起，`React.PropTypes` 已移入另一个包中。请使用 [prop-types](https://www.npmjs.com/package/prop-types) 库 代替。
+我们提供了一个 [codemod](https://zh-hans.reactjs.org/blog/2017/04/07/react-v15.5.0.html#migrating-from-reactproptypes) 脚本来做自动转换。
+
+随着你的应用程序不断增长，你可以通过类型检查捕获大量错误。对于某些应用程序来说，你可以使用 `Flow` 或 `TypeScript` 等 JavaScript 扩展来对整个应用程序做类型检查。但即使你不使用这些扩展，React 也内置了一些类型检查的功能。要在组件的 props 上进行类型检查，你只需配置特定的`propTypes` 属性：
+
+react对此提供了相应的解决方法：
+
+- propTypes:类型检查，还可以限制不能为空
+- defaultProps：默认值
+  
+> 从 ES2022 开始，你也可以在 React 类组件中将 `defaultProps` 声明为静态属性。欲了解更多信息，请参阅 [class public static fields](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Public_class_fields#public_static_fields)。这种现代语法需要添加额外的编译步骤才能在老版浏览器中工作。
+```js
+
+<!-- 准备好一个“容器” -->
+<div id="test1"></div>
+<div id="test2"></div>
+<div id="test3"></div>
+
+<script type="text/babel">
+    //创建组件
+    class Person extends React.Component{
+        render(){
+            // console.log(this);
+            const {name,age,sex} = this.props
+            //props是只读的
+            //this.props.name = 'jack' //此行代码会报错，因为props是只读的
+            return (
+                <ul>
+                    <li>姓名：{name}</li>
+                    <li>性别：{sex}</li>
+                    <li>年龄：{age+1}</li>
+                </ul>
+            )
+        }
+    }
+    //对标签属性进行类型、必要性的限制
+    Person.propTypes = {
+        name:PropTypes.string.isRequired, //限制name必传，且为字符串
+        sex:PropTypes.string,//限制sex为字符串
+        age:PropTypes.number,//限制age为数值
+        speak:PropTypes.func,//限制speak为函数
+    }
+    //指定默认标签属性值
+    Person.defaultProps = {
+        sex:'男',//sex默认值为男
+        age:18 //age默认值为18
+    }
+    //渲染组件到页面
+    ReactDOM.render(<Person name={100} speak={speak}/>,document.getElementById('test1'))
+    ReactDOM.render(<Person name="tom" age={18} sex="女"/>,document.getElementById('test2'))
+
+    const p = {name:'老刘',age:18,sex:'女'}
+    // console.log('@',...p);
+    // ReactDOM.render(<Person name={p.name} age={p.age} sex={p.sex}/>,document.getElementById('test3'))
+    ReactDOM.render(<Person {...p}/>,document.getElementById('test3'))
+
+    function speak(){
+        console.log('我说话了');
+    }
+</script>
+```
+当传入的 `prop` 值类型不正确时，JavaScript 控制台将会显示警告。出于性能方面的考虑，`propTypes` 仅在开发模式下进行检查。
+
+`defaultProps` 用于确保 this.props.sex 在父组件没有指定其值时，有一个默认值。propTypes 类型检查发生在 defaultProps 赋值后，所以类型检查也适用于 defaultProps。
+
+PropTypes
+
+以下提供了使用不同验证器的例子：
+```js
+import PropTypes from 'prop-types';
+
+MyComponent.propTypes = {
+  // 你可以将属性声明为 JS 原生类型，默认情况下
+  // 这些属性都是可选的。
+  optionalArray: PropTypes.array,
+  optionalBool: PropTypes.bool,
+  optionalFunc: PropTypes.func,
+  optionalNumber: PropTypes.number,
+  optionalObject: PropTypes.object,
+  optionalString: PropTypes.string,
+  optionalSymbol: PropTypes.symbol,
+
+  // 任何可被渲染的元素（包括数字、字符串、元素或数组）
+  // (或 Fragment) 也包含这些类型。
+  optionalNode: PropTypes.node,
+
+  // 一个 React 元素。
+  optionalElement: PropTypes.element,
+
+  // 一个 React 元素类型（即，MyComponent）。
+  optionalElementType: PropTypes.elementType,
+
+  // 你也可以声明 prop 为类的实例，这里使用
+  // JS 的 instanceof 操作符。
+  optionalMessage: PropTypes.instanceOf(Message),
+
+  // 你可以让你的 prop 只能是特定的值，指定它为
+  // 枚举类型。
+  optionalEnum: PropTypes.oneOf(['News', 'Photos']),
+
+  // 一个对象可以是几种类型中的任意一个类型
+  optionalUnion: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.number,
+    PropTypes.instanceOf(Message)
+  ]),
+
+  // 可以指定一个数组由某一类型的元素组成
+  optionalArrayOf: PropTypes.arrayOf(PropTypes.number),
+
+  // 可以指定一个对象由某一类型的值组成
+  optionalObjectOf: PropTypes.objectOf(PropTypes.number),
+
+  // 可以指定一个对象由特定的类型值组成
+  optionalObjectWithShape: PropTypes.shape({
+    color: PropTypes.string,
+    fontSize: PropTypes.number
+  }),
+
+  // 具有额外属性警告的对象
+  optionalObjectWithStrictShape: PropTypes.exact({
+    name: PropTypes.string,
+    quantity: PropTypes.number
+  }),
+
+  // 你可以在任何 PropTypes 属性后面加上 `isRequired` ，确保
+  // 这个 prop 没有被提供时，会打印警告信息。
+  requiredFunc: PropTypes.func.isRequired,
+
+  // 任意类型的必需数据
+  requiredAny: PropTypes.any.isRequired,
+
+  // 你可以指定一个自定义验证器。它在验证失败时应返回一个 Error 对象。
+  // 请不要使用 `console.warn` 或抛出异常，因为这在 `oneOfType` 中不会起作用。
+  customProp: function(props, propName, componentName) {
+    if (!/matchme/.test(props[propName])) {
+      return new Error(
+        'Invalid prop `' + propName + '` supplied to' +
+        ' `' + componentName + '`. Validation failed.'
+      );
+    }
+  },
+
+  // 你也可以提供一个自定义的 `arrayOf` 或 `objectOf` 验证器。
+  // 它应该在验证失败时返回一个 Error 对象。
+  // 验证器将验证数组或对象中的每个值。验证器的前两个参数
+  // 第一个是数组或对象本身
+  // 第二个是他们当前的键。
+  customArrayProp: PropTypes.arrayOf(function(propValue, key, componentName, location, propFullName) {
+    if (!/matchme/.test(propValue[key])) {
+      return new Error(
+        'Invalid prop `' + propFullName + '` supplied to' +
+        ' `' + componentName + '`. Validation failed.'
+      );
+    }
+  })
+};
+```
+限制单个元素
+
+你可以通过 PropTypes.element 来确保传递给组件的 children 中只包含一个元素。
+```js
+import PropTypes from 'prop-types';
+
+class MyComponent extends React.Component {
+  render() {
+    // 这必须只有一个元素，否则控制台会打印警告。
+    const children = this.props.children;
+    return (
+      <div>
+        {children}
+      </div>
+    );
+  }
+}
+
+MyComponent.propTypes = {
+  children: PropTypes.element.isRequired
+};
+```
+
+---------------------------------
 
 ##  组件通信的方式
 1. 父子组件通信方式
