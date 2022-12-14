@@ -464,6 +464,85 @@ MyComponent.propTypes = {
 };
 ```
 
+### 3. 简写方式
+```js
+<!-- 准备好一个“容器” -->
+<div id="test1"></div>
+<div id="test2"></div>
+<div id="test3"></div>
+
+
+<script type="text/babel">
+    //创建组件
+    class Person extends React.Component{
+
+        constructor(props){
+            //构造器是否接收props，是否传递给super，取决于：是否希望在构造器中通过this访问props
+            // console.log(props);
+            super(props)
+            console.log('constructor',this.props);
+        }
+
+        //对标签属性进行类型、必要性的限制
+        static propTypes = {
+            name:PropTypes.string.isRequired, //限制name必传，且为字符串
+            sex:PropTypes.string,//限制sex为字符串
+            age:PropTypes.number,//限制age为数值
+        }
+
+        //指定默认标签属性值
+        static defaultProps = {
+            sex:'男',//sex默认值为男
+            age:18 //age默认值为18
+        }
+
+        render(){
+            // console.log(this);
+            const {name,age,sex} = this.props
+            //props是只读的
+            //this.props.name = 'jack' //此行代码会报错，因为props是只读的
+            return (
+                <ul>
+                    <li>姓名：{name}</li>
+                    <li>性别：{sex}</li>
+                    <li>年龄：{age+1}</li>
+                </ul>
+            )
+        }
+    }
+
+    //渲染组件到页面
+    ReactDOM.render(<Person name="jerry"/>,document.getElementById('test1'))
+</script>
+```
+在使用的时候可以通过 `this.props`来获取值 类式组件的 props:
+
+1. 通过在组件标签上传递值，在组件中就可以获取到所传递的值
+2. 在构造器里的`props`参数里可以获取到 `props`
+3. 可以分别设置 `propTypes` 和 `defaultProps` 两个属性来分别操作 `props`的规范和默认值，两者都是直接添加在类式组件的原型对象上的（所以需要添加 `static`）
+4. 同时可以通过...运算符来简化
+
+### 4. props 的只读性
+组件无论是使用`函数声明`还是通过 `class 声明`，都绝不能修改自身的 props。来看下这个 sum 函数：
+```js
+function sum(a, b) {
+  return a + b;
+}
+```
+这样的函数被称为[“纯函数”](https://en.wikipedia.org/wiki/Pure_function)，因为该函数不会尝试更改入参，且多次调用下相同的入参始终返回相同的结果。
+
+相反，下面这个函数则不是纯函数，因为它更改了自己的入参：
+```js
+function withdraw(account, amount) {
+  account.total -= amount;
+}
+```
+React 非常灵活，但它也有一个严格的规则：
+
+所有 React 组件都必须像纯函数一样保护它们的 props 不被更改。
+
+当然，应用程序的 UI 是动态的，并会伴随着时间的推移而变化。state在不违反上述规则的情况下，state 允许 React 组件随用户操作、网络响应或者其他变化而动态更改输出内容。
+
 ---------------------------------
 
 ##  组件通信的方式
