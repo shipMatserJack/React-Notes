@@ -545,5 +545,61 @@ React 非常灵活，但它也有一个严格的规则：
 
 ---------------------------------
 
+## refs
+`Refs` 提供了一种方式，允许我们访问 DOM 节点或在 `render` 方法中创建的 React 元素。
+
+在典型的 React 数据流中，`props` 是父组件与子组件交互的唯一方式。要修改一个子组件，你需要使用新的 props 来重新渲染它。但是，在某些情况下，你需要在典型数据流之外强制修改子组件。被修改的子组件可能是一个 React 组件的实例，也可能是一个 DOM 元素。对于这两种情况，React 都提供了解决办法。
+> 在我们正常的操作节点时，需要采用DOM API 来查找元素，但是这样违背了 React 的理念，因此有了refs
+
+何时使用 Refs
+
+下面是几个适合使用 refs 的情况：
+
+- 管理焦点，文本选择或媒体播放。
+- 触发强制动画。
+- 集成第三方 DOM 库。
+避免使用 refs 来做任何可以通过声明式实现来完成的事情。
+
+有三种操作`refs`的方法，分别为：
+- 字符串形式
+- 回调形式
+- `createRef`形式
+
+### 1. 字符串形式
+在想要获取到一个DOM节点，可以直接在这个节点上添加ref属性。利用该属性进行获取该节点的值。
+
+案例：给需要的节点添加ref属性，此时该实例对象的refs上就会有这个值。就可以利用实例对象的refs获取已经添加节点的值
+```js
+<input ref="dian" type="text" placeholder="点击弹出" />
+
+inputBlur = () =>{
+  alert(this.refs.dian.value);
+}
+```
+注意
+
+不建议使用它，因为 string 类型的 refs 存在 [一些问题](https://github.com/facebook/react/pull/8333#issuecomment-271648615)。它已过时并可能会在未来的版本被移除。
+
+如果你目前还在使用 `this.refs.textInput` 这种方式访问 refs ，我们建议用[回调函数](https://zh-hans.reactjs.org/docs/refs-and-the-dom.html#callback-refs) 或 [createRef API](https://zh-hans.reactjs.org/docs/refs-and-the-dom.html#creating-refs) 的方式代替。
+
+### 2. 回调形式
+React 也支持另一种设置 refs 的方式，称为“回调 refs”。它能助你更精细地控制何时 refs 被设置和解除。
+
+这种方式会将该DOM作为参数传递过去。
+
+组件实例的`ref`属性传递一个回调函数`c => this.input1 = c` （箭头函数简写），这样会在实例的属性中存储对DOM节点的引用，使用时可通过`this.input1`来使用
+```js
+<input ref={e => this.input1 = e } type="text" placeholder="点击按钮提示数据"/>
+```
+`e`会接收到当前节点作为参数，然后将当前节点赋值给实例的`input1`属性上面
+
+
+
+
+
+
+
+---------------------------------
+
 ##  组件通信的方式
 1. 父子组件通信方式
