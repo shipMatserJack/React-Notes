@@ -593,11 +593,199 @@ React 也支持另一种设置 refs 的方式，称为“回调 refs”。它能
 ```
 `e`会接收到当前节点作为参数，然后将当前节点赋值给实例的`input1`属性上面
 
+下面的例子描述了一个通用的范例：使用 ref 回调函数，在实例的属性中存储对 DOM 节点的引用。
+```js
+//创建组件
+class Demo extends React.Component {
+    state = { isHot: false }
+	// 在实例上面创建一个函数
+    setTextInputRef = e => {
+      this.input1 = e
+    }
 
+    changeWeather = () => {
+      console.log(this.input1)
+      //获取原来的状态
+      const { isHot } = this.state
+      //更新状态
+      this.setState({ isHot: !isHot })
+    }
 
+    render() {
+      const { isHot } = this.state
+      return (
+        <div>
+          <h2>今天天气很{isHot ? '炎热' : '凉爽'}</h2>
+          <input ref={this.setTextInputRef} type="text" />
+          <br />
+          <button onClick={this.changeWeather}>点我切换天气</button>
+        </div>
+      )
+    }
+}
+```
+React 将在组件挂载时，会调用 `ref` 回调函数并传入 DOM 元素，当卸载时调用它并传入 null。
 
+你可以在组件间传递回调形式的 `refs`，就像你可以传递通过 `React.createRef()` 创建的对象 refs 一样。
+```js
+function CustomTextInput(props) {
+  return (
+    <div>
+      <input ref={props.inputRef} />    
+     </div>
+  );
+}
 
+class Parent extends React.Component {
+  render() {
+    return (
+      <CustomTextInput
+        inputRef={el => this.inputElement = el}      />
+    );
+  }
+}
+```
+在上面的例子中，`Parent` 把它的 refs 回调函数当作 `inputRef` props 传递给了 `CustomTextInput`，而且 CustomTextInput 把相同的函数作为特殊的 ref 属性传递给了 `<input>`。结果是，在 Parent 中的 `this.inputElement` 会被设置为与 CustomTextInput 中的 input 元素相对应的 DOM 节点。
 
+### 3 createRef 形式（推荐写法）
+创建 Refs
+
+Refs 是使用 `React.createRef()` 创建的，并通过 ref 属性附加到 React 元素。在构造组件时，通常将 Refs 分配给实例属性，以便可以在整个组件中引用它们。
+```js
+class MyComponent extends React.Component {
+  constructor(props) {
+    super(props);
+    this.myRef = React.createRef();
+  }
+  render() {
+    return <div ref={this.myRef} />;
+  }
+}
+```
+访问 Refs
+
+当 ref 被传递给 `render` 中的元素时，对该节点的引用可以在 ref 的 current 属性中被访问。
+```js
+const node = this.myRef.current;
+```
+ref 的值根据节点的类型而有所不同：
+
+- 当 ref 属性用于 HTML 元素时，构造函数中使用 `React.createRef()` 创建的 ref 接收底层 DOM 元素作为其 `current` 属性。
+- 当 ref 属性用于自定义 class 组件时，`ref` 对象接收组件的挂载实例作为其 `current` 属性。
+- 你不能在函数组件上使用 ref 属性，因为他们没有实例。
+
+### 4. 为 DOM 元素添加 ref
+以下代码使用 ref 去存储 DOM 节点的引用：
+```js
+class CustomTextInput extends React.Component {
+  constructor(props) {
+    super(props);
+    // 创建一个 ref 来存储 textInput 的 DOM 元素
+    this.textInput = React.createRef();    
+    this.focusTextInput = this.focusTextInput.bind(this);
+  }
+
+  focusTextInput() {
+    // 直接使用原生 API 使 text 输入框获得焦点
+    // 注意：我们通过 "current" 来访问 DOM 节点
+    this.textInput.current.focus();  
+  }
+
+  render() {
+    // 告诉 React 我们想把 <input> ref 关联到
+    // 构造器里创建的 `textInput` 上
+    return (
+      <div>
+        <input
+          type="text"
+          ref={this.textInput} 
+        />        
+        <input
+          type="button"
+          value="Focus the text input"
+          onClick={this.focusTextInput}
+        />
+      </div>
+    );
+  }
+}
+```
+React 会在组件挂载时给 `current` 属性传入 DOM 元素，并在组件卸载时传入 `null` 值。`ref` 会在 `componentDidMount` 或 `componentDidUpdate` 生命周期钩子触发前更新。
+
+注意：我们不要过度的使用 ref，如果发生时间的元素刚好是需要操作的元素，就可以使用事件对象去替代。
+
+### 5. 为 class 组件添加 Ref
+如果我们想包装上面的 `CustomTextInput`，来模拟它挂载之后立即被点击的操作，我们可以使用 ref 来获取这个自定义的 input 组件并手动调用它的 `focusTextInput` 方法：
+```js
+class AutoFocusTextInput extends React.Component {
+  constructor(props) {
+    super(props);
+    this.textInput = React.createRef();  
+  }
+
+  componentDidMount() {
+    this.textInput.current.focusTextInput();  
+  }
+
+  render() {
+    return (
+      <CustomTextInput ref={this.textInput} />    
+    );
+  }
+}
+```
+请注意，这仅在 CustomTextInput 声明为 class 时才有效：
+```js
+class CustomTextInput extends React.Component {  // ...
+}
+```
+
+### 6. Refs 与函数组件
+默认情况下，你不能在函数组件上使用 `ref` 属性，因为它们没有实例：
+```js
+function MyFunctionComponent() {
+  return <input />;
+}
+
+class Parent extends React.Component {
+  constructor(props) {
+    super(props);
+    this.textInput = React.createRef();
+  }
+  render() {
+    // This will *not* work!
+    return (
+      <MyFunctionComponent ref={this.textInput} />
+    );
+  }
+}
+```
+如果要在函数组件中使用 `ref`，你可以使用 [forwardRef](https://zh-hans.reactjs.org/docs/forwarding-refs.html)（可与 [useImperativeHandle](useimperativehandle) 结合使用），或者可以将该组件转化为 class 组件。
+
+不管怎样，你可以在函数组件内部使用 `ref` 属性，只要它指向一个 DOM 元素或 class 组件：
+```js
+function CustomTextInput(props) {
+  // 这里必须声明 textInput，这样 ref 才可以引用它
+  const textInput = useRef(null);
+
+  function handleClick() {
+    textInput.current.focus();
+  }
+
+  return (
+    <div>
+      <input
+        type="text"
+        ref={textInput} />
+      <input
+        type="button"
+        value="Focus the text input"
+        onClick={handleClick}
+      />
+    </div>
+  );
+}
+```
 
 ---------------------------------
 
