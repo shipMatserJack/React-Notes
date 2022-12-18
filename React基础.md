@@ -974,4 +974,183 @@ class Login extends React.Component{
 ---------------------------------
 
 ##  组件通信的方式
-1. 父子组件通信方式
+### 1. 父子组件通信方式
+- 父传子
+
+  在 React 中，父组件把数据传递给子组件，仍然是通过 props 的方式传递；
+```js
+import React, { Component } from 'react'
+import ReactDOM from 'react-dom'
+
+class Header extends Component {
+  render () {
+    return (<h1>
+      <p>{this.props.data}</p>
+    </h1>)
+  }
+}
+
+// 此时的 Panel 是父组件而 Header 是子组件，父子组件通信时父传子，仍然是通过 props 传递的
+class Panel extends Component {
+  render () {
+    return (<div className="container">
+      <p>{this.props.news}</p>
+      <Header data={this.props.min} />
+    </div>)
+  }
+}
+
+let data = {
+  news: '快下课了',
+  min: '拖几分钟'
+}
+
+ReactDOM.render(<Panel {...data} />, document.getElementById('root'))
+```
+- 子传父
+
+在 React 中子组件修改父组件的方式和 Vue 不同；子组件如果想修改父组件的数据，父组件在使用子组件的时候，通过 props 传给子组件一个可以修改父组件的方法，当子组件需要修改父组件的数据时，通过 `this.props` 找到这个方法执行对应的方法
+```js
+import React, { Component } from 'react'
+import ReactDOM from 'react-dom'
+
+import 'bootstrap/dist/css/bootstrap.css'
+
+class Panel extends Component {
+  static defaultProps = {
+    a: 1
+  }
+  constructor () {
+    super()
+
+    this.state = {
+      color: 'success'
+    }
+  }
+
+  changeColor = (color) => {
+    this.setState({
+      color
+    })
+  }
+
+  render () {
+    return (<div className="container">
+      <div className={`panel panel-${this.state.color}`}>
+        <div className="panel-heading">
+          {this.props.head}        </div>
+        <div className="panel-body">
+          {this.props.body}        </div>
+        {/*通过 modifyColor 这个 props 把 Panel 组件的 changeColor 方法传递给 Footer 组件*/}        <Footer type={this.state.color}
+                modifyColor={this.changeColor} />
+      </div>
+    </div>)
+  }
+}
+
+class Footer extends Component {
+  change = () => {
+    this.props.modifyColor('danger')
+  }
+  render () {
+
+    return (<div className="panel-footer">
+      <button className={`btn btn-${this.props.type}`} onClick={this.change}>变色</button>
+    </div>)
+  }
+}
+
+ReactDOM.render(<Panel head="头信息" body="信息主体"/>, document.getElementById('root'))
+
+// React 同样是单向数据流，即数据只能通过只能从父组件流向子组件
+// 所以子组件如果想修改父组件的数据，父组件在使用子组件的时候，通过props传给子组件一个可以修改父组件的方法，当子组件需要修改父组件的数据时，通过this.props 找到这个方法执行对应的方法就可以了
+```
+-  ref标记 (父组件拿到子组件的引用，从而调用子组件的方法)
+  
+     1. React.creactRef (引用保存在ref.current属性中)
+ ```js
+ class Children extends Component {
+  public state = {
+    name: 'Children',
+  };
+
+  public print() {
+    console.log('print');
+  }
+
+  public render() {
+    return <div>{this.state.name}</div>;
+  }
+}
+
+class Father extends Component {
+  public ref = React.createRef<any>();
+
+  public handleClick() {
+    this.ref.current.print();
+  }
+
+  public render() {
+    return (
+      <>
+        <button onClick={() => this.handleClick()}>click</button>
+        <Children ref={this.ref} />
+      </>
+    );
+  }
+}
+```  
+    2. 回调Refs  
+    此处有两个示例，其中textInput是对element元素的引用， inputRef是对Input组件的引用
+```js
+class Input extends Component {
+  textInput: HTMLElement | null = null;
+
+  componentDidMount() {
+    this.textInput?.focus();
+  }
+
+  public showInfo = () => {
+    console.log('this is callback ref');
+  };
+
+  render() {
+    return (
+      <div>
+        <input
+          ref={(element) => {
+            this.textInput = element;
+          }}
+        />
+        <button onClick={() => this.handleClick()}>click</button>
+      </div>
+    );
+  }
+
+  private handleClick = () => {
+    console.log(this.textInput);
+  };
+}
+
+class TopInput extends Component {
+  public inputRef: Input | null = null;
+
+  public executeChildren = () => {
+    this.inputRef?.showInfo();
+  };
+  render() {
+    return (
+      <div>
+        <Input
+          ref={(element) => {
+            this.inputRef = element;
+          }}
+        />
+        <button onClick={() => this.executeChildren()}>click_2</button>
+      </div>
+    );
+  }
+}
+```
+
+### 2.  非父子组件通信方式
