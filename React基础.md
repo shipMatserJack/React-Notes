@@ -1154,3 +1154,102 @@ class TopInput extends Component {
 ```
 
 ### 2.  非父子组件通信方式
+- 状态提升(中间人模式)  
+React中的状态提升概括来说,就是将多个组件需要共享的状态提升到它们最近的父组件
+上.在父组件上改变这个状态然后通过props分发给子组件
+```js
+import React from 'react';
+import ReactDOM from 'react-dom';
+import './index.css';
+
+
+//父组件
+class Parent extends React.Component {
+    // 提供共享状态
+    state = {
+        count: 0
+    }
+    //提供修改状态的方法
+    onIncrement = () => {
+        this.setState({
+            count: this.state.count + 1
+        })
+    }
+
+   //类组件必须提供render()方法
+    render() {
+        return (
+            <div>
+                <Child1 count={this.state.count}/>
+                <hr/>
+                <Child2 onIncrement={this.onIncrement}/>
+            </div>
+        )
+    }
+}
+
+//子组件
+const Child1 = (props) => {
+
+    return (
+        <div>
+            <h2>我是子组件1</h2>
+            <h3>计数器：{props.count}</h3>
+        </div>
+    )
+}
+const Child2 = (props) => {
+    return (
+        <div>
+            <h2>我是子组件2</h2>
+            <button onClick={() => props.onIncrement()}>+1</button>
+        </div>
+    )
+}
+ReactDOM.render(<Parent/>, document.getElementById('root'))
+```
+- 发布订阅模式  
+  参考 `eventBus`、 `Redux`
+- context状态树传参  
+  a. 先定义全局context对象 
+  ```js
+  import React from 'react' 
+  const GlobalContext = React.createContext() 
+  export default GlobalContext
+  ```
+  b. 根组件引入GlobalContext，并使用GlobalContext.Provider（生产者） 
+  ```js
+  //重新包装根组件 class App {} 
+  <GlobalContext.Provider 
+    value={{ 
+      name:"kerwin", 
+      age:100, 
+      content:this.state.content, 
+      show:this.show.bind(this), 
+      hide:this.hide.bind(this) 
+    }}
+  >
+    <之前的根组件></之前的根组件> 
+  </GlobalContext.Provider>
+  ```
+  c. 任意组件引入GlobalContext并调用context，使用GlobalContext.Consumer（消费者） 
+  ```js
+  <GlobalContext.Consumer> 
+    { 
+      context => { 
+        this.myshow = context.show; //可以在当前组件任意函数触发 
+        this.myhide = context.hide;//可以在当前组件任意函数触发 
+        return ( 
+          <div>
+            {context.name}-{context.age}-{context.content} 
+          </div> 
+        ) 
+      }
+    } 
+  </GlobalContext.Consumer>
+  ```
+  注意：GlobalContext.Consumer内必须是回调函数，通过context方法改变根组件状态
+  > context优缺点：  
+  优点：跨组件访问数据  
+  缺点：react组件树种某个上级组件shouldComponetUpdate 返回false,当context更新时，不
+  会引起下级组件更新
