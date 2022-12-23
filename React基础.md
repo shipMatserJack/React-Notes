@@ -1253,3 +1253,21 @@ ReactDOM.render(<Parent/>, document.getElementById('root'))
   优点：跨组件访问数据  
   缺点：react组件树种某个上级组件shouldComponetUpdate 返回false,当context更新时，不
   会引起下级组件更新
+
+  ----------------------------------
+
+  ##  React生命周期
+1. 初始化阶段
+  - componentWillMount
+  - render
+  - componentDidMout
+
+2. 运行中阶段
+   - componentWillReceiveProps
+   - shouldComponentUpdate
+   - componentWillUpdate
+   - render
+   - componentDidUpdate
+
+3. 销毁阶段
+   - componentWillUnmount
