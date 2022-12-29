@@ -1256,7 +1256,7 @@ ReactDOM.render(<Parent/>, document.getElementById('root'))
 
   ----------------------------------
 
-  ##  React生命周期
+##  React生命周期
 1. 初始化阶段
   - componentWillMount
   - render
@@ -1271,3 +1271,12 @@ ReactDOM.render(<Parent/>, document.getElementById('root'))
 
 3. 销毁阶段
    - componentWillUnmount
+
+
+----------------------------------
+
+## React Hooks
+使用hooks理由
+1. 高阶组件为了复用，导致代码层级复杂
+2. 生命周期的复杂
+3. 写成functional组件,无状态组件 ，因为需要状态，又改成了class,成本高
