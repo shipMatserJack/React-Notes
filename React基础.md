@@ -1280,3 +1280,56 @@ ReactDOM.render(<Parent/>, document.getElementById('root'))
 1. 高阶组件为了复用，导致代码层级复杂
 2. 生命周期的复杂
 3. 写成functional组件,无状态组件 ，因为需要状态，又改成了class,成本高
+
+### UseState
+useState 可以使函数组件像类组件一样拥有 state，函数组件通过 useState 可以让组件重新渲染，更新视图。
+```js
+const [ ①state , ②dispatch ] = useState(③initData)
+```
+**useState 基础介绍：**  
+① state，目的提供给 UI ，作为渲染视图的数据源。  
+② dispatchAction 改变 state   
+③ initData 有两种情况，第一种情况是非函数，将作为 state 初始化的值。 第二种情况是函数，函数的返回值作为 useState 初始化的值。
+
+**useState 基础用法：**
+```js
+const DemoState = (props) => {
+   /* number为此时state读取值 ，setNumber为派发更新的函数 */
+   let [number, setNumber] = useState(0) /* 0为初始值 */
+   return (<div>
+       <span>{ number }</span>
+       <button onClick={ ()=> {
+         setNumber(number+1)
+         console.log(number) /* 这里的number是不能够即使改变的  */
+       } } ></button>
+   </div>)
+}
+```
+**useState 注意事项：**
+① 在函数组件一次执行上下文中，state 的值是固定不变的。
+```js
+function Index(){
+    const [ number, setNumber ] = React.useState(0)
+    const handleClick = () => setInterval(()=>{
+        // 此时 number 一直都是 0
+        setNumber(number + 1 ) 
+    },1000)
+    return <button onClick={ handleClick } > 点击 { number }</button>
+}
+```
+② 如果两次 dispatchAction 传入相同的 state 值，那么组件就不会更新。
+```js
+export default function Index(){
+    const [ state  , dispatchState ] = useState({ name:'alien' })
+    const  handleClick = ()=>{ // 点击按钮，视图没有更新。
+        state.name = 'Alien'
+        dispatchState(state) // 直接改变 `state`，在内存中指向的地址相同。
+    }
+    return <div>
+         <span> { state.name }</span>
+        <button onClick={ handleClick }  >changeName++</button>
+    </div>
+}
+```
+③ 当触发 dispatchAction 在当前执行上下文中获取不到最新的 state, 只有在下一次组件 rerender 中才能获取到。
+
