@@ -1305,7 +1305,7 @@ const DemoState = (props) => {
    </div>)
 }
 ```
-**useState 注意事项：**
+**useState 注意事项：**  
 ① 在函数组件一次执行上下文中，state 的值是固定不变的。
 ```js
 function Index(){
