@@ -1333,3 +1333,42 @@ export default function Index(){
 ```
 ③ 当触发 dispatchAction 在当前执行上下文中获取不到最新的 state, 只有在下一次组件 rerender 中才能获取到。
 
+### useReducer
+useReducer 是 react-hooks 提供的能够在无状态组件中运行的类似redux的功能 api 。
+```js
+const [ ①state , ②dispatch ] = useReducer(③reducer)
+```
+**useState 基础介绍：** 
+
+① 更新之后的 state 值。  
+② 派发更新的 dispatchAction 函数, 本质上和 useState 的 dispatchAction 是一样的。  
+③ 一个函数 reducer ，我们可以认为它就是一个 redux 中的 reducer , reducer的参数就是常规reducer里面的state和action, 返回改变后的state, 这里有一个需要注意的点就是：**如果返回的 state 和之前的 state ，内存指向相同，那么组件将不会更新。**
+
+**useReducer 基础用法：**
+```js
+const DemoUseReducer = ()=>{
+    /* number为更新后的state值,  dispatchNumbner 为当前的派发函数 */
+   const [ number , dispatchNumbner ] = useReducer((state,action)=>{
+       const { payload , name  } = action
+       /* return的值为新的state */
+       switch(name){
+           case 'add':
+               return state + 1
+           case 'sub':
+               return state - 1 
+           case 'reset':
+             return payload       
+       }
+       return state
+   },0)
+   return <div>
+      当前值：{ number }
+      { /* 派发更新 */ }
+      <button onClick={()=>dispatchNumbner({ name:'add' })} >增加</button>
+      <button onClick={()=>dispatchNumbner({ name:'sub' })} >减少</button>
+      <button onClick={()=>dispatchNumbner({ name:'reset' ,payload:666 })} >赋值</button>
+      { /* 把dispatch 和 state 传递给子组件  */ }
+      <MyChildren  dispatch={ dispatchNumbner } State={{ number }} />
+   </div>
+}
+```
