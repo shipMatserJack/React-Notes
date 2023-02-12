@@ -1372,3 +1372,70 @@ const DemoUseReducer = ()=>{
    </div>
 }
 ```
+
+### useEffect
+React hooks也提供了 api ，用于弥补函数组件没有生命周期的缺陷。其本质主要是运用了 hooks 里面的 useEffect ， useLayoutEffect，还有 useInsertionEffect。其中最常用的就是 useEffect 。我们首先来看一下 useEffect 的使用。
+```js
+useEffect 基础介绍：
+useEffect(()=>{
+    return destory
+},dep)
+```
+- useEffect 第一个参数 callback, 返回的 destory ， destory 作为下一次callback执行之前调用，用于清除上一次 callback 产生的副作用。
+- 第二个参数作为依赖项，是一个数组，可以有多个依赖项，依赖项改变，执行上一次callback 返回的 destory ，和执行新的 effect 第一个参数 callback 
+
+对于 useEffect 执行， React 处理逻辑是采用异步调用 ，对于每一个 effect 的 callback， React 会向 setTimeout回调函数一样，放入任务队列，等到主线程任务完成，DOM 更新，js 执行完成，视图绘制完毕，才执行。所以 effect 回调函数不会阻塞浏览器绘制视图。
+
+**useEffect 基础用法：**
+```js
+/* 模拟数据交互 */
+function getUserInfo(a){
+    return new Promise((resolve)=>{
+        setTimeout(()=>{ 
+           resolve({
+               name:a,
+               age:16,
+           }) 
+        },500)
+    })
+}
+
+const Demo = ({ a }) => {
+    const [ userMessage , setUserMessage ] :any= useState({})
+    const div= useRef()
+    const [number, setNumber] = useState(0)
+    /* 模拟事件监听处理函数 */
+    const handleResize =()=>{}
+    /* useEffect使用 ，这里如果不加限制 ，会使函数重复执行，陷入死循环*/
+    useEffect(()=>{
+       /* 请求数据 */
+       getUserInfo(a).then(res=>{
+           setUserMessage(res)
+       })
+       /* 定时器 延时器等 */
+       const timer = setInterval(()=>console.log(666),1000)
+       /* 操作dom  */
+       console.log(div.current) /* div */
+       /* 事件监听等 */
+       window.addEventListener('resize', handleResize)
+         /* 此函数用于清除副作用 */
+       return function(){
+           clearInterval(timer) 
+           window.removeEventListener('resize', handleResize)
+       }
+    /* 只有当props->a和state->number改变的时候 ,useEffect副作用函数重新执行 ，如果此时数组为空[]，证明函数只有在初始化的时候执行一次相当于componentDidMount */
+    },[ a ,number ])
+    return (<div ref={div} >
+        <span>{ userMessage.name }</span>
+        <span>{ userMessage.age }</span>
+        <div onClick={ ()=> setNumber(1) } >{ number }</div>
+    </div>)
+}
+```
+如上在 useEffect 中做的功能如下：
+
+① 请求数据。  
+② 设置定时器,延时器等。  
+③ 操作 dom , 在 React Native 中可以通过 ref 获取元素位置信息等内容。  
+④ 注册事件监听器, 事件绑定，在 React Native 中可以注册 NativeEventEmitter 。  
+⑤ 还可以清除定时器，延时器，解绑事件监听器等。
