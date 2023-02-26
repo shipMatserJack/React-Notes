@@ -1375,8 +1375,9 @@ const DemoUseReducer = ()=>{
 
 ### useEffect
 React hooks也提供了 api ，用于弥补函数组件没有生命周期的缺陷。其本质主要是运用了 hooks 里面的 useEffect ， useLayoutEffect，还有 useInsertionEffect。其中最常用的就是 useEffect 。我们首先来看一下 useEffect 的使用。
+
+**useEffect 基础介绍：**
 ```js
-useEffect 基础介绍：
 useEffect(()=>{
     return destory
 },dep)
@@ -1439,3 +1440,28 @@ const Demo = ({ a }) => {
 ③ 操作 dom , 在 React Native 中可以通过 ref 获取元素位置信息等内容。  
 ④ 注册事件监听器, 事件绑定，在 React Native 中可以注册 NativeEventEmitter 。  
 ⑤ 还可以清除定时器，延时器，解绑事件监听器等。
+
+### useLayoutEffect
+**useLayoutEffect 基础介绍：**
+
+useLayoutEffect 和 useEffect 不同的地方是采用了`同步执行`，那么和useEffect有什么区别呢？
+
+① 首先 useLayoutEffect 是在 DOM 更新之后，浏览器绘制之前，这样可以方便修改 DOM，获取 DOM 信息，这样浏览器只会绘制一次，如果修改 DOM 布局放在 useEffect ，那 useEffect 执行是在浏览器绘制视图之后，接下来又改 DOM ，就可能会导致浏览器再次回流和重绘。而且由于两次绘制，视图上可能会造成闪现突兀的效果。  
+② useLayoutEffect callback 中代码执行会阻塞浏览器绘制。
+
+**useLayoutEffect 基础用法：**  
+```js
+const DemoUseLayoutEffect = () => {
+    const target = useRef()
+    useLayoutEffect(() => {
+        /*我们需要在dom绘制之前，移动dom到制定位置*/
+        const { x ,y } = getPositon() /* 获取要移动的 x,y坐标 */
+        animate(target.current,{ x,y })
+    }, []);
+    return (
+        <div >
+            <span ref={ target } className="animate"></span>
+        </div>
+    )
+}
+```
