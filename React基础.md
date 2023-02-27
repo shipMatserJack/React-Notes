@@ -1465,3 +1465,92 @@ const DemoUseLayoutEffect = () => {
     )
 }
 ```
+
+### useMemo
+useMemo 可以在函数组件 render 上下文中同步执行一个函数逻辑，这个函数的返回值可以作为一个新的状态缓存起来。那么这个 hooks 的作用就显而易见了：
+
+场景一：在一些场景下，需要在函数组件中进行大量的逻辑计算，那么我们不期望每一次函数组件渲染都执行这些复杂的计算逻辑，所以就需要在 useMemo 的回调函数中执行这些逻辑，然后把得到的产物（计算结果）缓存起来就可以了。
+
+场景二：React 在整个更新流程中，diff 起到了决定性的作用，比如 Context 中的 provider 通过 diff value 来判断是否更新
+
+**useMemo 基础介绍：**
+```js
+const cacheSomething = useMemo(create,deps)
+```
+① create：第一个参数为一个函数，函数的返回值作为缓存值，如上 demo 中把 Children 对应的 element 对象，缓存起来。  
+② deps： 第二个参数为一个数组，存放当前 useMemo 的依赖项，在函数组件下一次执行的时候，会对比 deps 依赖项里面的状态，是否有改变，如果有改变重新执行 create ，得到新的缓存值。  
+③ cacheSomething：返回值，执行 create 的返回值。如果 deps 中有依赖项改变，返回的重新执行 create 产生的值，否则取上一次缓存值。
+
+**useMemo 基础用法：**
+1. 派生新状态：
+   通过 useMemo 得到派生出来的新状态 contextValue ，只有 keeper 变化的时候，才改变 Provider 的 value 。
+    ```js
+    function Scope() {
+        const keeper = useKeep()
+        const { cacheDispatch, cacheList, hasAliveStatus } = keeper
+      
+        /* 通过 useMemo 得到派生出来的新状态 contextValue  */
+        const contextValue = useMemo(() => {
+            return {
+                cacheDispatch: cacheDispatch.bind(keeper),
+                hasAliveStatus: hasAliveStatus.bind(keeper),
+                cacheDestory: (payload) => cacheDispatch.call(keeper, { type: ACTION_DESTORY, payload })
+            }
+          
+        }, [keeper])
+        return <KeepaliveContext.Provider value={contextValue}>
+        </KeepaliveContext.Provider>
+    }
+    ```
+2. 缓存计算结果：
+    ```js
+    function Scope(){
+      const style = useMemo(()=>{
+        let computedStyle = {}
+        // 经过大量的计算
+        return computedStyle
+      },[])
+      return <div style={style} ></div>
+    }
+    ```
+
+3. 缓存组件,减少子组件 rerender 次数：
+    ```js
+    function Scope ({ children }){
+      const renderChild = useMemo(()=>{ children()  },[ children ])
+      return <div>{ renderChild } </div>
+    }
+    ```
+
+
+### useCallback
+**useCallback 基础介绍：**
+
+`useMemo` 和 `useCallback` 接收的参数都是一样，都是在其依赖项发生变化后才执行，都是返回缓存的值，区别在于 useMemo 返回的是`函数运行的结果`，useCallback 返回的是`函数`，这个回调函数是经过处理后的也就是说父组件传递一个函数给子组件的时候，由于是无状态组件每一次都会重新生成新的 props 函数，这样就使得每一次传递给子组件的函数都发生了变化，这时候就会触发子组件的更新，这些更新是没有必要的，此时我们就可以通过 usecallback 来处理此函数，然后作为 props 传递给子组件。
+
+**useCallback 基础用法：**
+```js
+/* 用react.memo */
+const DemoChildren = React.memo((props)=>{
+   /* 只有初始化的时候打印了 子组件更新 */
+    console.log('子组件更新')
+   useEffect(()=>{
+       props.getInfo('子组件')
+   },[])
+   return <div>子组件</div>
+})
+
+const DemoUseCallback=({ id })=>{
+    const [number, setNumber] = useState(1)
+    /* 此时usecallback的第一参数 (sonName)=>{ console.log(sonName) }
+     经过处理赋值给 getInfo */
+    const getInfo  = useCallback((sonName)=>{
+          console.log(sonName)
+    },[id])
+    return <div>
+        {/* 点击按钮触发父组件更新 ，但是子组件没有更新 */}
+        <button onClick={ ()=>setNumber(number+1) } >增加</button>
+        <DemoChildren getInfo={getInfo} />
+    </div>
+}
+```
