@@ -4,6 +4,6 @@
 
 ## redux
 
-## dva
+## zustand
 
 ## react hook
