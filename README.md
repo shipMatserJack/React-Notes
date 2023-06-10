@@ -4,7 +4,7 @@
 
 ## redux
 
-## react query
+## zustand
 
 ## react hook
 
