@@ -4,6 +4,8 @@
 
 ## redux
 
-## dva
+## react query
 
 ## react hook
+
+## zustand
